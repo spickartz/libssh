@@ -403,11 +403,9 @@ class Channel {
   friend class Session;
 public:
   Channel(Session &session){
-    channel=ssh_channel_new(session.getCSession());
     this->session=&session;
   }
   ~Channel(){
-    ssh_channel_free(channel);
     channel=NULL;
   }
 
@@ -443,6 +441,7 @@ public:
    */
   void_throwable close(){
     ssh_throw(ssh_channel_close(channel));
+    ssh_channel_free(channel);
     return_throwable;
   }
 
@@ -472,6 +471,7 @@ public:
   }
   int openForward(const char *remotehost, int remoteport,
       const char *sourcehost=NULL, int localport=0){
+    channel=ssh_channel_new(session->getCSession());
     int err=ssh_channel_open_forward(channel,remotehost,remoteport,
         sourcehost, localport);
     ssh_throw(err);
@@ -479,6 +479,7 @@ public:
   }
   /* TODO: completely remove this ? */
   void_throwable openSession(){
+    channel=ssh_channel_new(session->getCSession());
     int err=ssh_channel_open_session(channel);
     ssh_throw(err);
     return_throwable;
